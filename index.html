@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>English Study</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #08090c;
+      color: #f5f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      padding:
+        max(18px, env(safe-area-inset-top))
+        max(18px, env(safe-area-inset-right))
+        max(18px, env(safe-area-inset-bottom))
+        max(18px, env(safe-area-inset-left));
+    }
+
+    .app {
+      width: 100%;
+      height: calc(100vh - 36px);
+      height: calc(100dvh - 36px);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 18px;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #aeb6c7;
+      font-size: clamp(15px, 2vw, 20px);
+      user-select: none;
+    }
+
+    .title {
+      font-weight: 700;
+      color: #f5f7fb;
+    }
+
+    .reset-btn {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.04);
+      color: #aeb6c7;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: clamp(13px, 1.8vw, 17px);
+    }
+
+    .stage {
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      width: min(92vw, 820px);
+      min-height: min(66vh, 620px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 26px;
+      padding: clamp(28px, 6vw, 72px);
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035)),
+        #11141b;
+      box-shadow:
+        0 28px 90px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      transition: transform 260ms ease, opacity 260ms ease;
+    }
+
+    .card.switching {
+      transform: translateY(14px) scale(0.985);
+      opacity: 0;
+    }
+
+    .word {
+      font-size: clamp(52px, 10vw, 108px);
+      line-height: 1;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .meaning {
+      text-align: center;
+      font-size: clamp(24px, 4.4vw, 42px);
+      color: #dbe2f0;
+      font-weight: 650;
+    }
+
+    .example {
+      font-size: clamp(20px, 3vw, 31px);
+      line-height: 1.45;
+      color: #b9c3d7;
+      text-align: center;
+    }
+
+    .memory {
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.055);
+      color: #e7ebf4;
+      font-size: clamp(18px, 2.55vw, 26px);
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      width: min(92vw, 820px);
+      margin: 0 auto;
+    }
+
+    .action-btn {
+      height: clamp(58px, 8vh, 78px);
+      border: 0;
+      border-radius: 18px;
+      color: #fff;
+      font-size: clamp(20px, 3vw, 28px);
+      font-weight: 760;
+      touch-action: manipulation;
+      transition: transform 120ms ease, filter 120ms ease;
+    }
+
+    .action-btn:active {
+      transform: scale(0.96);
+      filter: brightness(1.12);
+    }
+
+    .known {
+      background: #1f8f5f;
+    }
+
+    .fuzzy {
+      background: #b7791f;
+    }
+
+    .unknown {
+      background: #b83232;
+    }
+
+    .bottom {
+      display: grid;
+      gap: 10px;
+      width: min(92vw, 820px);
+      margin: 0 auto;
+      color: #9da7ba;
+      font-size: clamp(14px, 2vw, 18px);
+    }
+
+    .progress-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .progress-track {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #5eead4, #60a5fa);
+      transition: width 260ms ease;
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 16px;
+      }
+
+      .card {
+        border-radius: 22px;
+        gap: 20px;
+      }
+
+      .actions {
+        gap: 10px;
+      }
+
+      .action-btn {
+        border-radius: 15px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      .card {
+        min-height: 46vh;
+        gap: 14px;
+        padding: 24px 34px;
+      }
+
+      .word {
+        font-size: clamp(44px, 8vw, 76px);
+      }
+
+      .meaning {
+        font-size: clamp(22px, 3.4vw, 32px);
+      }
+
+      .example,
+      .memory {
+        font-size: clamp(16px, 2.4vw, 22px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="top-bar">
+      <div class="title">今日第 <span id="todayIndex">1</span> 个单词</div>
+      <button class="reset-btn" id="resetBtn">重置</button>
+    </header>
+
+    <section class="stage">
+      <article class="card" id="card">
+        <div class="word" id="word">abandon</div>
+        <div class="meaning" id="meaning">放弃；抛弃</div>
+        <div class="example" id="example">He decided to abandon the old plan and start again.</div>
+        <div class="memory" id="memory">记忆：a + bandon，可联想“一再把东西扔掉”，表示放弃。</div>
+      </article>
+    </section>
+
+    <footer>
+      <div class="actions">
+        <button class="action-btn known" id="knownBtn">认识</button>
+        <button class="action-btn fuzzy" id="fuzzyBtn">模糊</button>
+        <button class="action-btn unknown" id="unknownBtn">不会</button>
+      </div>
+
+      <div class="bottom">
+        <div class="progress-line">
+          <span>学习进度</span>
+          <span id="progressText">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    const words = [
+      { word: "abandon", meaning: "放弃；抛弃", example: "He decided to abandon the old plan and start again.", memory: "记忆：a + bandon，可联想“一再把东西扔掉”，表示放弃。" },
+      { word: "abstract", meaning: "抽象的；摘要", example: "The theory is too abstract for beginners.", memory: "记忆：abs 表离开，tract 表拉，拉离现实就是抽象。" },
+      { word: "accommodate", meaning: "容纳；适应；提供住宿", example: "The hotel can accommodate hundreds of guests.", memory: "记忆：com 表共同，mod 表模式，调整到共同模式就是适应。" },
+      { word: "accumulate", meaning: "积累；堆积", example: "Small habits accumulate into major changes.", memory: "记忆：cumulate 有堆积感，ac 加强，表示不断积累。" },
+      { word: "ambiguous", meaning: "模糊不清的；有歧义的", example: "His answer was ambiguous and caused confusion.", memory: "记忆：ambi 表两边，两边都能解释就是有歧义。" },
+      { word: "anticipate", meaning: "预期；期待；预先考虑", example: "We anticipate a rise in demand next year.", memory: "记忆：anti 表前，cip 表拿，提前拿到想法就是预期。" },
+      { word: "appropriate", meaning: "合适的；恰当的", example: "This method is appropriate for academic writing.", memory: "记忆：proper 表合适，appropriate 就是使其合适。" },
+      { word: "assumption", meaning: "假设；设想", example: "The argument is based on a false assumption.", memory: "记忆：assume 是假定，assumption 是名词形式。" },
+      { word: "beneficial", meaning: "有益的；有利的", example: "Regular reading is beneficial to language learning.", memory: "记忆：bene 表好，fic 表做，做出好处就是有益的。" },
+      { word: "coherent", meaning: "连贯的；一致的", example: "Her essay is clear, logical, and coherent.", memory: "记忆：co 表一起，her 表粘，粘在一起就是连贯。" },
+      { word: "comprehensive", meaning: "全面的；综合的", example: "The report provides a comprehensive analysis.", memory: "记忆：com 表一起，prehend 表抓，全部抓住就是全面。" },
+      { word: "consequence", meaning: "结果；后果", example: "Every decision has a consequence.", memory: "记忆：con 表一起，sequence 表顺序，顺着发生的就是结果。" },
+      { word: "controversial", meaning: "有争议的", example: "The policy remains controversial among experts.", memory: "记忆：contro 表反对，vers 表转，观点反向转动就有争议。" },
+      { word: "demonstrate", meaning: "证明；展示", example: "The experiment demonstrates the importance of evidence.", memory: "记忆：demo 表展示，strate 可联想展开，展开给人看就是展示。" },
+      { word: "distinguish", meaning: "区分；辨别", example: "It is hard to distinguish fact from opinion.", memory: "记忆：dis 表分开，区分就是把相似事物分开看。" },
+      { word: "essential", meaning: "必要的；本质的", example: "Vocabulary is essential for reading comprehension.", memory: "记忆：essence 是本质，essential 就是本质上必要的。" },
+      { word: "inevitable", meaning: "不可避免的", example: "Change is inevitable in modern society.", memory: "记忆：in 表不，evitable 表可避免，不可避免就是 inevitable。" },
+      { word: "interpret", meaning: "解释；理解；口译", example: "Different readers may interpret the text differently.", memory: "记忆：inter 表在中间，pret 可联想价格，站在中间说明含义就是解释。" },
+      { word: "objective", meaning: "客观的；目标", example: "Academic writing should be objective and precise.", memory: "记忆：object 是物体，像物体一样摆在那里，不受情绪影响就是客观。" },
+      { word: "substantial", meaning: "大量的；实质的；重要的", example: "The new policy brought substantial benefits.", memory: "记忆：substance 是实质，substantial 就是有实质分量的。" }
+    ];
+
+    const STORAGE_KEY = "english-study-progress-v1";
+
+    const card = document.getElementById("card");
+    const wordEl = document.getElementById("word");
+    const meaningEl = document.getElementById("meaning");
+    const exampleEl = document.getElementById("example");
+    const memoryEl = document.getElementById("memory");
+    const todayIndexEl = document.getElementById("todayIndex");
+    const progressTextEl = document.getElementById("progressText");
+    const progressFillEl = document.getElementById("progressFill");
+
+    let state = loadState();
+    let currentIndex = pickNextWordIndex();
+
+    renderWord();
+
+    document.getElementById("knownBtn").addEventListener("click", function () {
+      answer("known");
+    });
+
+    document.getElementById("fuzzyBtn").addEventListener("click", function () {
+      answer("fuzzy");
+    });
+
+    document.getElementById("unknownBtn").addEventListener("click", function () {
+      answer("unknown");
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", function () {
+      const ok = confirm("确定要重置学习进度吗？");
+      if (!ok) return;
+
+      localStorage.removeItem(STORAGE_KEY);
+      state = createInitialState();
+      currentIndex = pickNextWordIndex();
+      renderWord();
+    });
+
+    function createInitialState() {
+      return {
+        todayCount: 1,
+        learnedMap: {},
+        wordStats: words.map(function () {
+          return {
+            seen: 0,
+            known: 0,
+            fuzzy: 0,
+            unknown: 0,
+            weight: 3
+          };
+        })
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return createInitialState();
+
+        const saved = JSON.parse(raw);
+
+        if (!saved.wordStats || saved.wordStats.length !== words.length) {
+          return createInitialState();
+        }
+
+        return saved;
+      } catch (error) {
+        return createInitialState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function renderWord() {
+      const item = words[currentIndex];
+
+      wordEl.textContent = item.word;
+      meaningEl.textContent = item.meaning;
+      exampleEl.textContent = item.example;
+      memoryEl.textContent = item.memory;
+
+      todayIndexEl.textContent = state.todayCount;
+      updateProgress();
+    }
+
+    function answer(type) {
+      const stats = state.wordStats[currentIndex];
+
+      stats.seen += 1;
+      stats[type] += 1;
+      state.learnedMap[currentIndex] = true;
+
+      if (type === "known") {
+        stats.weight = Math.max(1, stats.weight - 2);
+      }
+
+      if (type === "fuzzy") {
+        stats.weight = Math.min(6, stats.weight + 1);
+      }
+
+      if (type === "unknown") {
+        stats.weight = Math.min(10, stats.weight + 3);
+      }
+
+      state.todayCount += 1;
+      saveState();
+      switchToNextWord();
+    }
+
+    function switchToNextWord() {
+      card.classList.add("switching");
+
+      setTimeout(function () {
+        currentIndex = pickNextWordIndex();
+        renderWord();
+
+        requestAnimationFrame(function () {
+          card.classList.remove("switching");
+        });
+      }, 220);
+    }
+
+    function pickNextWordIndex() {
+      const pool = [];
+
+      words.forEach(function (_, index) {
+        const stats = state.wordStats[index];
+        const baseWeight = stats.weight;
+        const newWordBonus = stats.seen === 0 ? 4 : 0;
+        const totalWeight = baseWeight + newWordBonus;
+
+        for (let i = 0; i < totalWeight; i++) {
+          pool.push(index);
+        }
+      });
+
+      if (pool.length === 0) return 0;
+
+      let next = pool[Math.floor(Math.random() * pool.length)];
+
+      if (words.length > 1) {
+        let attempts = 0;
+        while (next === currentIndex && attempts < 8) {
+          next = pool[Math.floor(Math.random() * pool.length)];
+          attempts += 1;
+        }
+      }
+
+      return next;
+    }
+
+    function updateProgress() {
+      const learnedCount = Object.keys(state.learnedMap).length;
+      const percent = Math.round((learnedCount / words.length) * 100);
+
+      progressTextEl.textContent = percent + "%";
+      progressFillEl.style.width = percent + "%";
+    }
+  </script>
+</body>
+</html>
